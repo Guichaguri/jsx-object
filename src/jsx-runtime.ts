@@ -1,11 +1,14 @@
 import type { Children } from './index.js';
 
-const processResult = (name: string | Function, props: object, children: Children) => {
+const processResult = (
+  name: string | Function,
+  props: { children?: Children; [k: string]: any },
+) => {
   if (typeof name === 'function') {
-    return name({ ...props, children });
+    return name(props);
   }
 
-  return children;
+  return props.children;
 }
 
 const isPromise = (value: any): value is Promise<any> => {
@@ -38,11 +41,11 @@ export function jsx(
 ): JSX.Element {
   if (hasPromise(attributes.children)) {
     return resolveChildren(attributes.children).then(children => {
-      return processResult(name, attributes, children);
+      return processResult(name, { ...attributes, children });
     });
   }
 
-  return processResult(name, attributes, attributes.children);
+  return processResult(name, attributes);
 }
 
 export function jsxs(

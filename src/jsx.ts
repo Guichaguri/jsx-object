@@ -8,7 +8,7 @@ declare global {
      * A `JSX.Element` is always the component object, unless one of their children is a Promise,
      * which makes it also be a Promise
      */
-    type Element<T = ComponentObject> = T | Promise<T>
+    type Element = ComponentObject | Promise<ComponentObject>
 
     interface IntrinsicAttributes {
       /**
