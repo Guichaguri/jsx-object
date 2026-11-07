@@ -1,6 +1,6 @@
 {
   "name": "jsx-object",
-  "version": "1.0.1",
+  "version": "1.1.0",
   "type": "module",
   "sideEffects": false,
   "description": "Tiny, dependency-free JSX runtime that turns JSX into plain JavaScript objects, with async components. Great for server-driven UI and JSON templating.",
