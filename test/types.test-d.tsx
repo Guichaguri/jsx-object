@@ -83,7 +83,7 @@ describe('ObjectOf', () => {
 
 describe('Component', () => {
   it('declares props and result types', () => {
-    expectTypeOf(AsyncText).parameter(0).toEqualTypeOf<{ children?: Children } & { id: number }>();
+    expectTypeOf(AsyncText).parameter(0).toEqualTypeOf<{ id: number }>();
     expectTypeOf(AsyncText).returns.toEqualTypeOf<ObjectElement<TextObject>>();
   });
 
@@ -93,13 +93,13 @@ describe('Component', () => {
 });
 
 describe('FunctionComponent', () => {
-  const Title: FunctionComponent<{ text: string }, TextObject> = (props) => ({
+  const Title: FunctionComponent<{ text: string, children?: Children }, TextObject> = (props) => ({
     type: 'text',
     text: props.text,
   });
 
   it('infers props from the annotation', () => {
-    expectTypeOf(Title).parameter(0).toEqualTypeOf<{ children?: Children } & { text: string }>();
+    expectTypeOf(Title).parameter(0).toEqualTypeOf<{ children?: Children, text: string }>();
   });
 
   it('checks the result type', () => {
