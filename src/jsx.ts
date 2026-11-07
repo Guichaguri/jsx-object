@@ -1,14 +1,29 @@
 declare global {
   namespace JSX {
-    interface ComponentObject {
-      [key: string]: any;
-    }
+    /**
+     * The constraint every component's result must satisfy.
+     *
+     * It's empty by default, so any object is accepted. Extend it to require members on the result
+     * of every component, such as a `type` discriminator.
+     */
+    interface ComponentObject {}
 
     /**
-     * A `JSX.Element` is always the component object, unless one of their children is a Promise,
-     * which makes it also be a Promise
+     * The type of every JSX expression.
+     *
+     * TypeScript gives all JSX expressions this same type, regardless of the component, so it's
+     * intentionally loose: annotate the result with `ObjectElement<T>` or `ObjectOf<typeof C>` to
+     * get a typed object.
+     *
+     * @see https://github.com/microsoft/TypeScript/issues/14729
      */
-    type Element = ComponentObject | Promise<ComponentObject>
+    type Element = any
+
+    /**
+     * Validates components (TypeScript 5.1+): every component must return an object satisfying
+     * {@linkcode ComponentObject}, a promise of one, or JSX.
+     */
+    type ElementType = string | ((props: any) => import('./index.js').ObjectElement | null | undefined)
 
     interface IntrinsicAttributes {
       /**

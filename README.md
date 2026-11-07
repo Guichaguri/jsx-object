@@ -206,7 +206,13 @@ console.log(data);
 jsx-object exports a few helper types:
 
 ```tsx
-import type { Children, Component, PropsWithChildren } from 'jsx-object';
+import type { Children, FC, ObjectElement, ObjectOf, PropsWithChildren } from 'jsx-object';
+
+// ObjectElement<T>: the result of a JSX element, the object T or a promise of it
+const card: ObjectElement<CardObject> = <Card />;
+
+// ObjectOf<typeof C>: the object a component produces, unwrapped if it's async
+const product: ObjectOf<typeof Product> = await <Product id={32} />;
 
 // Children: anything that can be passed as children, including promises and arrays
 interface CardProps {
@@ -217,15 +223,17 @@ interface CardProps {
 // PropsWithChildren<T>: adds an optional `children` prop to T
 type SectionProps = PropsWithChildren<{ title: string }>;
 
-// Component<T>: a component function that receives T plus children
-const Section: Component<{ title: string }> = (props) => {
+// FC<T, R>: a function component that receives T plus children, and produces R
+const Section: FC<{ title: string, children: Children }, SectionObject> = (props) => {
   return { type: 'section', title: props.title, content: props.children };
 };
 ```
 
+`FC` is shorthand for `FunctionComponent`, and `Component` is another alias of the same type, so use whichever name you prefer. Like React's, `FunctionComponent` is an interface, so you can extend it with `declare module 'jsx-object'`.
+
 ### Typing results
 
-TypeScript can't infer what a component returns from a JSX expression: every JSX expression has the type `JSX.Element`, which is `JSX.ComponentObject | Promise<JSX.ComponentObject>`. `JSX.ComponentObject` is a loose object type whose properties are all `any`, so reading properties from a result compiles without type checking, typos included. Cast the result to the type you expect:
+TypeScript gives every JSX expression the same type, `JSX.Element`, no matter which component it renders, so it can't infer that `<Post />` produces a `PostObject`. Like React's `ReactElement<P>`, jsx-object solves this with annotations: `JSX.Element` is intentionally `any`, and you declare the type you expect.
 
 ```tsx
 interface PostObject {
@@ -233,11 +241,46 @@ interface PostObject {
   title: string;
 }
 
-const post = <Post title="Hello World!" /> as PostObject;
+// Annotate with the object type
+const post: PostObject = <Post title="Hello World!" />;
 
-// For async trees, await first
-const product = (await <Product id={32} />) as ProductObject;
+// Or derive it from the component, so it stays in sync with what the component returns
+const derived: ObjectOf<typeof Post> = <Post title="Hello World!" />;
+
+// Await async trees first, or use ObjectElement<T> to keep the promise
+const product: ObjectOf<typeof Product> = await <Product id={32} />;
+const pending: ObjectElement<ProductObject> = <Product id={32} />;
 ```
+
+Once annotated, the result is fully typed: `post.title` is a `string`, and typos such as `post.titel` are errors.
+
+Annotate component return types and `children` props the same way:
+
+```tsx
+interface CardProps {
+  children: ObjectElement<TextObject>[];
+}
+
+const Card = (props: CardProps): ObjectElement<CardObject> => {
+  return { type: 'card', items: props.children };
+};
+
+const Page = (): ObjectElement<CardObject> => (
+  <Card>
+    <Text>Hello</Text>
+    <Text>World</Text>
+  </Card>
+);
+```
+
+A single JSX child is passed as-is, not wrapped in an array. If a component accepts one or many children, type the prop as `ObjectElement<T> | ObjectElement<T>[]`.
+
+> [!WARNING]
+> Annotations are not checked against the component. TypeScript accepts `const post: ProductObject = <Post />`, reading properties from an unannotated result, and reading properties from an async tree without awaiting it. `ObjectOf<typeof Component>` avoids picking the wrong type by hand. To catch unannotated results, enable typescript-eslint's [`no-unsafe-member-access`](https://typescript-eslint.io/rules/no-unsafe-member-access/) rule.
+
+### Validating components
+
+With TypeScript 5.1 or later, every component is checked through `JSX.ElementType`: it must return an object, an array, `null`, a promise of one of those, or JSX. Components returning strings or numbers are rejected.
 
 ### Extending the JSX types
 
@@ -266,9 +309,9 @@ declare global {
 }
 ```
 
-Members added to `ComponentObject` apply to every component, whether it's sync or async, or returns another component's JSX. Use optional members to allow a property without requiring it. If a member uses literal types, such as `type: 'text' | 'stack'`, components must return those values `as const`, since TypeScript otherwise widens them to `string`.
+`ComponentObject` is empty by default. Members added to it apply to every component, whether it's sync or async, or returns another component's JSX. They also become the default of `ObjectElement` and `Component`. Use optional members to allow a property without requiring it. If a member uses literal types, such as `type: 'text' | 'stack'`, components must return those values `as const`, since TypeScript otherwise widens them to `string`.
 
-You can add members and new types, but you can't redefine existing ones: `JSX.Element` is fixed, `ComponentObject` keeps its `any` index signature, and existing interface members, such as `key`, keep their types.
+You can add members and new types, but you can't redefine existing ones: `JSX.Element` and `JSX.ElementType` are fixed, and existing interface members, such as `key`, keep their types.
 
 ## Behavior Notes
 
@@ -288,7 +331,7 @@ The JSX transform strips the `key` prop before it reaches your components. If yo
 
 - Ships both ESM and CommonJS builds, with type declarations for each.
 - No runtime dependencies. Runs in any ES2018+ environment.
-- Requires TypeScript 4.1 or later, for `jsxImportSource` support.
+- Requires TypeScript 4.1 or later, for `jsxImportSource` support. Component validation requires TypeScript 5.1 or later.
 
 ## Contributing
 

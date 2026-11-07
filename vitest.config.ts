@@ -20,5 +20,10 @@ export default defineConfig({
   },
   test: {
     include: ['test/**/*.test.{ts,tsx}'],
+    typecheck: {
+      enabled: true,
+      include: ['test/**/*.test-d.{ts,tsx}'],
+      tsconfig: './tsconfig.test.json',
+    },
   },
 });
