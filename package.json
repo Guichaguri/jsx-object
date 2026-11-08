@@ -18,8 +18,16 @@
     "components",
     "typescript"
   ],
-  "author": "Guichaguri",
+  "author": "Guilherme Chaguri",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Guichaguri/jsx-object.git"
+  },
+  "homepage": "https://github.com/Guichaguri/jsx-object#readme",
+  "bugs": {
+    "url": "https://github.com/Guichaguri/jsx-object/issues"
+  },
   "files": [
     "dist"
   ],
