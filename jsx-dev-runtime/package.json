@@ -1,0 +1,6 @@
+{
+  "private": true,
+  "main": "../dist/jsx-dev-runtime.cjs",
+  "module": "../dist/jsx-dev-runtime.js",
+  "types": "../dist/jsx-dev-runtime.d.cts"
+}

@@ -29,7 +29,9 @@
     "url": "https://github.com/Guichaguri/jsx-object/issues"
   },
   "files": [
-    "dist"
+    "dist",
+    "jsx-runtime",
+    "jsx-dev-runtime"
   ],
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
