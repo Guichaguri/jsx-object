@@ -26,9 +26,14 @@ interface TagRegistry {
  * The registry is stored on `globalThis` under `Symbol.for`, so it's shared by every copy of
  * jsx-object loaded in the process, such as its ESM and CommonJS builds. Otherwise, a tag
  * registered through one copy would be missing from elements created by the other.
+ *
+ * `globalThis` is from ES2020, so environments without it, such as Node 10 and Safari before 12.1,
+ * get a registry of their own for each copy instead.
  */
+const root: any = typeof globalThis !== 'undefined' ? globalThis : {};
+
 const registry: TagRegistry =
-  ((globalThis as any)[Symbol.for('jsx-object.tags')] ??= { tags: new Map(), fallback: undefined });
+  (root[Symbol.for('jsx-object.tags')] ??= { tags: new Map(), fallback: undefined });
 
 const assertHandler = (handler: unknown) => {
   if (typeof handler !== 'function') {
