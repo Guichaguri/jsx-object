@@ -24,7 +24,6 @@ There is no virtual DOM, no rendering step and no reconciliation: a JSX expressi
 - [Examples](#examples)
 - [TypeScript](#typescript)
 - [Behavior Notes](#behavior-notes)
-- [Upgrading from 1.x](#upgrading-from-1x)
 - [Compatibility](#compatibility)
 - [Contributing](#contributing)
 
@@ -451,33 +450,6 @@ const data = createElement(Paragraph, { variant: 'title' }, 'Hello');
 ```
 
 Children passed as arguments replace `props.children`: a single child is passed as-is, and several are passed as an array. The `key` prop is removed, like with JSX.
-
-## Upgrading from 1.x
-
-### Children are flattened
-
-Children used to reach components exactly as written. They're now [normalized](#children): nested arrays are flattened, and `null`, `undefined` and booleans are dropped. This changes the output of any tree that mixes mapped lists with other children, uses conditionals, or contains components returning fragments or `null`. A component that relied on the nested structure, such as treating each mapped list as a group, should now take the list as a regular prop instead. The `Children` type also accepts booleans now.
-
-### Lowercase tags throw by default
-
-A lowercase tag used to return its children. It now throws unless a handler is [registered](#lowercase-tags) for it. To keep the old behavior, register a default handler that passes the children through:
-
-```tsx
-registerDefaultTag((name, props) => props.children);
-```
-
-### `JSX` is no longer global
-
-In 1.x, jsx-object declared `JSX` as a global namespace. It's now exported from the package, which changes two things:
-
-1. **Extensions move from `declare global` to `declare module 'jsx-object'`.** The block inside stays the same. A leftover `declare global { namespace JSX { ... } }` still compiles, but no longer affects jsx-object. Custom tags become type errors, and `ComponentObject` members stop being enforced without any error, so search your project for `declare global` when upgrading.
-2. **`JSX.Element`, `JSX.ComponentObject` and other `JSX` types need an import:** `import type { JSX } from 'jsx-object'`. Without it, TypeScript reports "Cannot find namespace 'JSX'". If the project also has `@types/react` 18 installed, the bare name resolves to React's global `JSX` instead, without an error.
-
-Components, props, `ObjectElement`, `ObjectOf` and the other exported types are not affected by this change.
-
-### `Component` is removed
-
-The `Component` type was an alias of `FunctionComponent`. Replace it with `FunctionComponent` or its shorthand `FC`, which take the same type parameters.
 
 ## Compatibility
 
