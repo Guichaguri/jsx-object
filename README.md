@@ -110,6 +110,28 @@ To use jsx-object in only some files, add this comment to the top of each file i
 > [!NOTE]
 > jsx-object doesn't declare a global `JSX` namespace, so it can share a TypeScript project with React or other JSX libraries. Each file uses the JSX types of its own `jsxImportSource`.
 
+#### Classic runtime
+
+Tools that only support the classic JSX runtime, which compiles JSX to `createElement` calls, can use [`createElement`](#createelement) and `Fragment` as the factories:
+
+```json
+{
+  "compilerOptions": {
+    "jsx": "react",
+    "jsxFactory": "createElement",
+    "jsxFragmentFactory": "Fragment"
+  }
+}
+```
+
+Each file then imports them, since the compiled code calls them directly:
+
+```tsx
+import { createElement, Fragment } from 'jsx-object';
+```
+
+TypeScript reads the JSX types from `createElement.JSX`, which forwards to the exported `JSX` namespace, so [extensions](#extending-the-jsx-types) apply in both runtimes. With Babel, set `"runtime": "classic"`, `"pragma": "createElement"` and `"pragmaFrag": "Fragment"`, or use `/** @jsx createElement */` and `/** @jsxFrag Fragment */` comments in each file.
+
 ## Examples
 
 ### Components
@@ -419,7 +441,7 @@ The JSX transform strips the `key` prop before it reaches your components. If yo
 
 ### `createElement`
 
-When a `key` comes after a spread, as in `<Item {...props} key="a" />`, the JSX transform calls `createElement` from `jsx-object` instead of the runtime. It's exported for that case, and works like React's, so you can also use it to build elements without JSX:
+When a `key` comes after a spread, as in `<Item {...props} key="a" />`, the JSX transform calls `createElement` from `jsx-object` instead of the runtime. It's exported for that case and for the [classic runtime](#classic-runtime), and works like React's, so you can also use it to build elements without JSX:
 
 ```tsx
 import { createElement } from 'jsx-object';

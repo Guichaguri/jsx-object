@@ -42,3 +42,28 @@ export function createElement(
 
   return jsx(type, attributes);
 }
+
+// Inside `createElement.JSX`, the name `JSX` refers to that namespace itself, so the exported one
+// is reached through these aliases
+type JSXElement = JSX.Element
+type JSXElementType = JSX.ElementType
+type JSXIntrinsicAttributes = JSX.IntrinsicAttributes
+type JSXElementChildrenAttribute = JSX.ElementChildrenAttribute
+type JSXIntrinsicElements = JSX.IntrinsicElements
+
+/**
+ * The JSX types, attached to `createElement` for the classic JSX runtime.
+ *
+ * With `"jsx": "react"` and `"jsxFactory": "createElement"`, or a `@jsx createElement` comment,
+ * TypeScript reads the JSX types from the factory function instead of `jsxImportSource`. They
+ * forward to the exported `JSX` namespace, so its extensions apply here too.
+ */
+export declare namespace createElement {
+  namespace JSX {
+    type Element = JSXElement
+    type ElementType = JSXElementType
+    interface IntrinsicAttributes extends JSXIntrinsicAttributes {}
+    interface ElementChildrenAttribute extends JSXElementChildrenAttribute {}
+    interface IntrinsicElements extends JSXIntrinsicElements {}
+  }
+}
