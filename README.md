@@ -393,6 +393,19 @@ There are no intrinsic elements such as `<div>`. Rendering a lowercase tag throw
 
 The JSX transform strips the `key` prop before it reaches your components. If you need a similar prop, use another name such as `id`.
 
+### `createElement`
+
+When a `key` comes after a spread, as in `<Item {...props} key="a" />`, the JSX transform calls `createElement` from `jsx-object` instead of the runtime. It's exported for that case, and works like React's, so you can also use it to build elements without JSX:
+
+```tsx
+import { createElement } from 'jsx-object';
+
+const data = createElement(Paragraph, { variant: 'title' }, 'Hello');
+// same as <Paragraph variant="title">Hello</Paragraph>
+```
+
+Children passed as arguments replace `props.children`: a single child is passed as-is, and several are passed as an array. The `key` prop is removed, like with JSX.
+
 ## Upgrading from 1.x
 
 ### Children are flattened

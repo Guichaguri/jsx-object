@@ -1,6 +1,7 @@
 import type { JSX } from './jsx.js';
 
 export type { JSX } from './jsx.js';
+export { createElement } from './create-element.js';
 export { registerDefaultTag, registerTag } from './tags.js';
 export type { DefaultTagHandler, TagHandler } from './tags.js';
 

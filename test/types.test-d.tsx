@@ -6,6 +6,7 @@ import type {
   ObjectElement,
   ObjectOf,
 } from '../src/index.js';
+import { createElement } from '../src/index.js';
 
 interface TextObject {
   type: 'text';
@@ -167,5 +168,15 @@ describe('Children', () => {
     expectTypeOf([show && text, null, [text]]).toExtend<Children>();
     // @ts-expect-error strings are not children unless the component declares them
     expectTypeOf('text').toExtend<Children>();
+  });
+});
+
+describe('createElement', () => {
+  it('accepts any child arguments, like JSX text children', () => {
+    const Text = (props: { children: string }): TextObject => ({ type: 'text', text: props.children });
+
+    expectTypeOf(createElement(Text, null, 'Hello')).toBeAny();
+    createElement('box', { color: 'red' });
+    createElement(Text);
   });
 });
