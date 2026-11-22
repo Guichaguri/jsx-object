@@ -38,6 +38,14 @@ export type Children =
 
 export type PropsWithChildren<T = {}> = { children?: Children } & T
 
+export type TextElement =
+  | string
+  | number
+  | bigint
+  | null
+  | undefined
+  | boolean
+
 /**
  * Text children, such as `Hello {name}!`, which arrive as an array of parts. Use it as the type of
  * a `children` prop and convert it with {@linkcode toText}.
@@ -48,13 +56,8 @@ export type PropsWithChildren<T = {}> = { children?: Children } & T
  * };
  */
 export type TextChildren =
-  | string
-  | number
-  | bigint
-  | null
-  | undefined
-  | boolean
-  | readonly TextChildren[]
+  | TextElement
+  | readonly TextElement[]
 
 /**
  * Converts text children into a single string.
