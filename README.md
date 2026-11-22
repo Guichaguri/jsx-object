@@ -2,7 +2,7 @@
 
 [![npm version](https://img.shields.io/npm/v/jsx-object)](https://www.npmjs.com/package/jsx-object)
 [![bundle size](https://img.shields.io/bundlephobia/minzip/jsx-object)](https://bundlephobia.com/package/jsx-object)
-[![license](https://img.shields.io/npm/l/jsx-object)](./LICENSE)
+[![license](https://img.shields.io/npm/l/jsx-object)](/LICENSE)
 
 A tiny, dependency-free JSX runtime that turns JSX into plain JavaScript objects.
 
@@ -107,7 +107,7 @@ To use jsx-object in only some files, add this comment to the top of each file i
 ```
 
 > [!NOTE]
-> jsx-object declares a global `JSX` namespace, so it can't share a TypeScript project with other libraries that also declare one, such as `@types/react` 18.
+> jsx-object doesn't declare a global `JSX` namespace, so it can share a TypeScript project with React or other JSX libraries. Each file uses the JSX types of its own `jsxImportSource`.
 
 ## Examples
 
@@ -206,7 +206,7 @@ console.log(data);
 jsx-object exports a few helper types:
 
 ```tsx
-import type { Children, FC, ObjectElement, ObjectOf, PropsWithChildren } from 'jsx-object';
+import type { Children, FC, JSX, ObjectElement, ObjectOf, PropsWithChildren } from 'jsx-object';
 
 // ObjectElement<T>: the result of a JSX element, the object T or a promise of it
 const card: ObjectElement<CardObject> = <Card />;
@@ -284,12 +284,20 @@ With TypeScript 5.1 or later, every component is checked through `JSX.ElementTyp
 
 ### Extending the JSX types
 
-The `JSX` namespace is global, so `JSX.Element` and `JSX.ComponentObject` are available without an import. Extend it with a `declare global` block from any module file in your project:
+The `JSX` namespace is exported by `jsx-object`, not declared globally. Import it to use its types:
+
+```tsx
+import type { JSX } from 'jsx-object';
+
+const result: JSX.ComponentObject = <Post title="Hello World!" />;
+```
+
+Extend it with a `declare module` block from any module file in your project:
 
 ```tsx
 export {};
 
-declare global {
+declare module 'jsx-object' {
   namespace JSX {
     // Declare custom tags, with type-checked props
     interface IntrinsicElements {
@@ -312,6 +320,15 @@ declare global {
 `ComponentObject` is empty by default. Members added to it apply to every component, whether it's sync or async, or returns another component's JSX. They also become the default of `ObjectElement` and `Component`. Use optional members to allow a property without requiring it. If a member uses literal types, such as `type: 'text' | 'stack'`, components must return those values `as const`, since TypeScript otherwise widens them to `string`.
 
 You can add members and new types, but you can't redefine existing ones: `JSX.Element` and `JSX.ElementType` are fixed, and existing interface members, such as `key`, keep their types.
+
+### Upgrading from 1.x
+
+In 1.x, jsx-object declared `JSX` as a global namespace. It's now exported from the package, which changes two things:
+
+1. **Extensions move from `declare global` to `declare module 'jsx-object'`.** The block inside stays the same. A leftover `declare global { namespace JSX { ... } }` still compiles, but no longer affects jsx-object. Custom tags become type errors, and `ComponentObject` members stop being enforced without any error, so search your project for `declare global` when upgrading.
+2. **`JSX.Element`, `JSX.ComponentObject` and other `JSX` types need an import:** `import type { JSX } from 'jsx-object'`. Without it, TypeScript reports "Cannot find namespace 'JSX'". If the project also has `@types/react` 18 installed, the bare name resolves to React's global `JSX` instead, without an error.
+
+Components, props, `ObjectElement`, `ObjectOf` and the other exported types are unchanged.
 
 ## Behavior Notes
 

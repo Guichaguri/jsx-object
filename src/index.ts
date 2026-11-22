@@ -1,4 +1,6 @@
-import './jsx.js';
+import type { JSX } from './jsx.js';
+
+export type { JSX } from './jsx.js';
 
 /**
  * The result of a JSX element: the object `T`, or a promise of it when the tree contains an async

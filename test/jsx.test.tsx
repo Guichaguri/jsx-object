@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import type { Children } from '../src/index.js';
+import type { Children, JSX } from '../src/index.js';
 
 interface TextProps {
   variant?: 'title' | 'body';

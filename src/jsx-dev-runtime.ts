@@ -1,7 +1,8 @@
-import type { Children } from './index.js'
+import type { Children, JSX } from './index.js'
 import { jsx, jsxs } from './jsx-runtime.js'
 
 export { Fragment, jsx, jsxs } from './jsx-runtime.js'
+export type { JSX } from './index.js'
 
 /**
  * Generates an object from an element name or component and its props.

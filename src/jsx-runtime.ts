@@ -1,4 +1,6 @@
-import type { Children } from './index.js';
+import type { Children, JSX } from './index.js';
+
+export type { JSX } from './index.js';
 
 const processResult = (
   name: string | Function,
