@@ -161,3 +161,15 @@ describe('JSX.ElementType', () => {
     expectTypeOf(<Card>{[{ type: 'nope' }]}</Card>);
   });
 });
+
+describe('Children', () => {
+  it('accepts conditionals, which are dropped at runtime', () => {
+    const show = false as boolean;
+    const text: TextObject = { type: 'text', text: 'Hello' };
+
+    expectTypeOf(show && text).toExtend<Children>();
+    expectTypeOf([show && text, null, [text]]).toExtend<Children>();
+    // @ts-expect-error strings are not children unless the component declares them
+    expectTypeOf('text').toExtend<Children>();
+  });
+});

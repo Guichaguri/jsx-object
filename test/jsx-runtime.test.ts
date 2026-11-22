@@ -150,13 +150,13 @@ describe('jsxs', () => {
     expect(component).not.toHaveBeenCalled();
   });
 
-  it('awaits promises inside nested arrays, keeping them nested', async () => {
+  it('awaits promises inside nested arrays, flattening them', async () => {
     const result = jsxs((props: object) => props, {
       children: [{ id: 1 }, [Promise.resolve({ id: 2 }), { id: 3 }]],
     });
 
     expect(result).toBeInstanceOf(Promise);
-    await expect(result).resolves.toEqual({ children: [{ id: 1 }, [{ id: 2 }, { id: 3 }]] });
+    await expect(result).resolves.toEqual({ children: [{ id: 1 }, { id: 2 }, { id: 3 }] });
   });
 
   it('awaits promises at any array depth', async () => {
@@ -164,13 +164,13 @@ describe('jsxs', () => {
       children: [[[Promise.resolve({ id: 1 })]], { id: 2 }],
     });
 
-    await expect(result).resolves.toEqual([[[{ id: 1 }]], { id: 2 }]);
+    await expect(result).resolves.toEqual([{ id: 1 }, { id: 2 }]);
   });
 
   it('stays synchronous when nested arrays contain no promises', () => {
     const children = [{ id: 1 }, [{ id: 2 }, [{ id: 3 }]]];
 
-    expect(jsxs('anything', { children })).toBe(children);
+    expect(jsxs('anything', { children })).toEqual([{ id: 1 }, { id: 2 }, { id: 3 }]);
   });
 
   it('propagates a rejection from a nested array', async () => {
@@ -179,6 +179,75 @@ describe('jsxs', () => {
     await expect(
       jsxs('anything', { children: [{ id: 1 }, [Promise.reject(error)]] }),
     ).rejects.toBe(error);
+  });
+});
+
+describe('children normalization', () => {
+  it('flattens nested arrays without mutating them', () => {
+    const nested = [{ id: 2 }, [{ id: 3 }]];
+    const children = [{ id: 1 }, nested];
+    const snapshot = structuredClone(children);
+
+    const result = jsxs((props: object) => props, { children });
+
+    expect(result).toEqual({ children: [{ id: 1 }, { id: 2 }, { id: 3 }] });
+    expect(children).toEqual(snapshot);
+  });
+
+  it('drops null, undefined and booleans from arrays', () => {
+    const result = jsxs('anything', {
+      children: [null, { id: 1 }, undefined, false, [true, { id: 2 }, null]],
+    });
+
+    expect(result).toEqual([{ id: 1 }, { id: 2 }]);
+  });
+
+  it('keeps falsy values that are not empty, such as 0 and empty strings', () => {
+    expect(jsxs('anything', { children: [0, '', { id: 1 }] as any })).toEqual([0, '', { id: 1 }]);
+  });
+
+  it('keeps an array whose children are all empty as an empty array', () => {
+    expect(jsxs('anything', { children: [null, [false, undefined]] })).toEqual([]);
+  });
+
+  it('keeps a single array child as an array, even with one item', () => {
+    expect(jsx('anything', { children: [[{ id: 1 }]] })).toEqual([{ id: 1 }]);
+  });
+
+  it.each([null, undefined, false, true])('removes a single empty child (%s)', (child) => {
+    const component = vi.fn((props: object) => props);
+
+    const result = jsx(component, { title: 'Hello', children: child as any });
+
+    expect(result).toStrictEqual({ title: 'Hello' });
+    expect('children' in (result as object)).toBe(false);
+  });
+
+  it('reuses the props and children when nothing changes', () => {
+    const attributes = { children: [{ id: 1 }, { id: 2 }] };
+
+    const result = jsxs((props: object) => props, attributes);
+
+    expect(result).toBe(attributes);
+  });
+
+  it('flattens arrays and drops empty values produced by async children', async () => {
+    const result = jsxs('anything', {
+      children: [
+        { id: 1 },
+        Promise.resolve([{ id: 2 }, { id: 3 }]),
+        Promise.resolve(null),
+        Promise.resolve(false),
+      ],
+    });
+
+    await expect(result).resolves.toEqual([{ id: 1 }, { id: 2 }, { id: 3 }]);
+  });
+
+  it('removes a single async child that resolves to an empty value', async () => {
+    const result = jsx((props: object) => props, { title: 'Hello', children: Promise.resolve(null) });
+
+    await expect(result).resolves.toStrictEqual({ title: 'Hello' });
   });
 });
 

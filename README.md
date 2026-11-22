@@ -24,6 +24,7 @@ There is no virtual DOM, no rendering step and no reconciliation: a JSX expressi
 - [Examples](#examples)
 - [TypeScript](#typescript)
 - [Behavior Notes](#behavior-notes)
+- [Upgrading from 1.x](#upgrading-from-1x)
 - [Compatibility](#compatibility)
 - [Contributing](#contributing)
 
@@ -175,6 +176,26 @@ Mapped lists of async components are awaited too, wherever they appear among the
 
 Children can be either a single object or an array of objects.
 
+Before children reach a component, they're cleaned up so they can go straight into your JSON:
+
+- Nested arrays, such as mapped lists or components that return a fragment, are flattened into a single array.
+- `null`, `undefined`, `true` and `false` are dropped, so conditionals like `{show && <Badge />}` leave nothing behind. Other values, such as `0` and `''`, are kept.
+- A single child that's empty, such as `{show && <Badge />}` when `show` is false, is removed, so `children` is `undefined`.
+
+```tsx
+const data = (
+  <List>
+    <Paragraph>Products</Paragraph>
+    {ids.map((id) => <Product id={id} />)}
+    {isAdmin && <Paragraph>Edit</Paragraph>}
+  </List>
+)
+
+// children: [Paragraph, Product, Product, ...], with no nested array and no `false`
+```
+
+A single child stays as-is, not wrapped in an array:
+
 ```tsx
 const data = (
   <Paragraph>Hello</Paragraph>
@@ -214,7 +235,7 @@ const card: ObjectElement<CardObject> = <Card />;
 // ObjectOf<typeof C>: the object a component produces, unwrapped if it's async
 const product: ObjectOf<typeof Product> = await <Product id={32} />;
 
-// Children: anything that can be passed as children, including promises and arrays
+// Children: anything that can be passed as children, including promises, arrays and conditionals
 interface CardProps {
   title: string;
   children?: Children;
@@ -321,15 +342,6 @@ declare module 'jsx-object' {
 
 You can add members and new types, but you can't redefine existing ones: `JSX.Element` and `JSX.ElementType` are fixed, and existing interface members, such as `key`, keep their types.
 
-### Upgrading from 1.x
-
-In 1.x, jsx-object declared `JSX` as a global namespace. It's now exported from the package, which changes two things:
-
-1. **Extensions move from `declare global` to `declare module 'jsx-object'`.** The block inside stays the same. A leftover `declare global { namespace JSX { ... } }` still compiles, but no longer affects jsx-object. Custom tags become type errors, and `ComponentObject` members stop being enforced without any error, so search your project for `declare global` when upgrading.
-2. **`JSX.Element`, `JSX.ComponentObject` and other `JSX` types need an import:** `import type { JSX } from 'jsx-object'`. Without it, TypeScript reports "Cannot find namespace 'JSX'". If the project also has `@types/react` 18 installed, the bare name resolves to React's global `JSX` instead, without an error.
-
-Components, props, `ObjectElement`, `ObjectOf` and the other exported types are unchanged.
-
 ## Behavior Notes
 
 ### Errors
@@ -343,6 +355,21 @@ There are no intrinsic elements such as `<div>`. A lowercase tag simply returns 
 ### `key` is reserved
 
 The JSX transform strips the `key` prop before it reaches your components. If you need a similar prop, use another name such as `id`.
+
+## Upgrading from 1.x
+
+### Children are flattened
+
+Children used to reach components exactly as written. They're now [normalized](#children): nested arrays are flattened, and `null`, `undefined` and booleans are dropped. This changes the output of any tree that mixes mapped lists with other children, uses conditionals, or contains components returning fragments or `null`. A component that relied on the nested structure, such as treating each mapped list as a group, should now take the list as a regular prop instead. The `Children` type also accepts booleans now.
+
+### `JSX` is no longer global
+
+In 1.x, jsx-object declared `JSX` as a global namespace. It's now exported from the package, which changes two things:
+
+1. **Extensions move from `declare global` to `declare module 'jsx-object'`.** The block inside stays the same. A leftover `declare global { namespace JSX { ... } }` still compiles, but no longer affects jsx-object. Custom tags become type errors, and `ComponentObject` members stop being enforced without any error, so search your project for `declare global` when upgrading.
+2. **`JSX.Element`, `JSX.ComponentObject` and other `JSX` types need an import:** `import type { JSX } from 'jsx-object'`. Without it, TypeScript reports "Cannot find namespace 'JSX'". If the project also has `@types/react` 18 installed, the bare name resolves to React's global `JSX` instead, without an error.
+
+Components, props, `ObjectElement`, `ObjectOf` and the other exported types are otherwise unchanged.
 
 ## Compatibility
 

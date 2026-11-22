@@ -19,9 +19,16 @@ export type ObjectElement<T extends object = object & JSX.ComponentObject> = T |
  */
 export type ObjectOf<C extends (props: any) => any> = Awaited<ReturnType<C>>
 
+/**
+ * Anything that can be passed as children.
+ *
+ * Nested arrays are flattened, and `null`, `undefined` and booleans are dropped before the
+ * children reach the component, so conditionals such as `{show && <Item />}` can be used freely.
+ */
 export type Children =
   | null
   | undefined
+  | boolean
   | ObjectElement
   | Promise<Children>
   | Children[]

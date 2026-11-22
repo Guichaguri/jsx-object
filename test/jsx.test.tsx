@@ -267,10 +267,104 @@ describe('JSX syntax', () => {
       type: 'stack',
       children: [
         { type: 'text', variant: undefined, text: 'Title' },
-        [
-          { type: 'text', variant: undefined, text: 'a' },
-          { type: 'text', variant: undefined, text: 'b' },
-        ],
+        { type: 'text', variant: undefined, text: 'a' },
+        { type: 'text', variant: undefined, text: 'b' },
+      ],
+    });
+  });
+
+  it('drops children hidden by conditionals', () => {
+    const show = false as boolean;
+    const missing = undefined as string | undefined;
+
+    const tree = (
+      <Stack>
+        {show && <Text>Hidden</Text>}
+        <Text>Visible</Text>
+        {show ? <Text>Also hidden</Text> : null}
+        {missing && <Text>{missing}</Text>}
+      </Stack>
+    );
+
+    expect(tree).toEqual({
+      type: 'stack',
+      children: [{ type: 'text', variant: undefined, text: 'Visible' }],
+    });
+  });
+
+  it('removes a single child hidden by a conditional', () => {
+    const show = false as boolean;
+
+    expect(<Stack>{show && <Text>Hidden</Text>}</Stack>).toStrictEqual({
+      type: 'stack',
+      children: undefined,
+    });
+  });
+
+  it('flattens a component that returns a fragment into its parent', () => {
+    function Pair() {
+      return (
+        <>
+          <Text>One</Text>
+          <Text>Two</Text>
+        </>
+      );
+    }
+
+    expect(
+      <Stack>
+        <Text>Zero</Text>
+        <Pair />
+      </Stack>,
+    ).toEqual({
+      type: 'stack',
+      children: [
+        { type: 'text', variant: undefined, text: 'Zero' },
+        { type: 'text', variant: undefined, text: 'One' },
+        { type: 'text', variant: undefined, text: 'Two' },
+      ],
+    });
+  });
+
+  it('drops a component that returns null', () => {
+    function Nothing() {
+      return null;
+    }
+
+    expect(
+      <Stack>
+        <Nothing />
+        <Text>Visible</Text>
+      </Stack>,
+    ).toEqual({
+      type: 'stack',
+      children: [{ type: 'text', variant: undefined, text: 'Visible' }],
+    });
+  });
+
+  it('flattens an async component that returns a fragment', async () => {
+    async function AsyncPair() {
+      await delay();
+      return (
+        <>
+          <Text>One</Text>
+          {null}
+          <Text>Two</Text>
+        </>
+      );
+    }
+
+    await expect(
+      <Stack>
+        <AsyncPair />
+        <Text>Three</Text>
+      </Stack>,
+    ).resolves.toEqual({
+      type: 'stack',
+      children: [
+        { type: 'text', variant: undefined, text: 'One' },
+        { type: 'text', variant: undefined, text: 'Two' },
+        { type: 'text', variant: undefined, text: 'Three' },
       ],
     });
   });
