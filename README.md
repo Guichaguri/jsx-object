@@ -174,7 +174,7 @@ Mapped lists of async components are awaited too, wherever they appear among the
 
 ### Children
 
-Children can be either a single object or an array of objects.
+Children can be either a single object or an array of objects. Components can also accept text children, as shown in [Text](#text).
 
 Before children reach a component, they're cleaned up so they can go straight into your JSON:
 
@@ -259,12 +259,31 @@ A few rules keep the registry predictable:
 - Both functions return a function that undoes the registration, which is useful in tests. Undoing a default handler restores the previous one.
 - The registry is shared by every copy of jsx-object in the process, including its ESM and CommonJS builds. Register handlers before rendering, since elements are evaluated as soon as they're created.
 
+### Text
+
+Text with interpolated values, such as `Hello {name}!`, reaches the component as an array of parts: `['Hello ', 'Ana', '!']`. Type the `children` prop as `TextChildren` and convert it with `toText`:
+
+```tsx
+import { toText, type TextChildren } from 'jsx-object';
+
+const Label = (props: { children: TextChildren }) => {
+  return { type: 'label', text: toText(props.children) };
+};
+
+console.log(<Label>Hello {name}, you have {count} messages</Label>);
+// { type: 'label', text: 'Hello Ana, you have 3 messages' }
+```
+
+`toText` joins the parts without a separator, converts numbers and bigints to strings, and leaves out `null`, `undefined` and booleans, so conditionals such as `{isVip && ' (VIP)'}` work too. Any other value, such as an object, throws a `TypeError` instead of becoming `'[object Object]'`.
+
+Children are never joined automatically, because an array of strings can also be data, such as a list of tags. Only components that call `toText` get a single string.
+
 ## TypeScript
 
 jsx-object exports a few helper types:
 
 ```tsx
-import type { Children, FC, JSX, ObjectElement, ObjectOf, PropsWithChildren } from 'jsx-object';
+import type { Children, FC, JSX, ObjectElement, ObjectOf, PropsWithChildren, TextChildren } from 'jsx-object';
 
 // ObjectElement<T>: the result of a JSX element, the object T or a promise of it
 const card: ObjectElement<CardObject> = <Card />;
@@ -276,6 +295,11 @@ const product: ObjectOf<typeof Product> = await <Product id={32} />;
 interface CardProps {
   title: string;
   children?: Children;
+}
+
+// TextChildren: text, numbers and conditionals, to be joined with toText (see Text)
+interface LabelProps {
+  children: TextChildren;
 }
 
 // PropsWithChildren<T>: adds an optional `children` prop to T
