@@ -169,6 +169,18 @@ describe('registerTag', () => {
     expect(registry.tags.get('tag-box')).toBe(handler);
   });
 
+  it('is shared with another copy of the module, like the ESM and CommonJS builds', async () => {
+    vi.resetModules();
+    const copy = await import('../src/tags.js');
+
+    expect(copy.registerTag).not.toBe(registerTag);
+
+    scoped(copy.registerTag('tag-box', () => ({ type: 'from-copy' })));
+
+    expect(<tag-box />).toEqual({ type: 'from-copy' });
+    expect(() => registerTag('tag-box', () => ({}))).toThrow('The tag <tag-box> is already registered');
+  });
+
   it('can be called through the runtime directly', () => {
     scoped(registerTag('tag-box', (props) => ({ type: 'box', ...props })));
 

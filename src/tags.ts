@@ -30,7 +30,8 @@ interface TagRegistry {
  * `globalThis` is from ES2020, so environments without it, such as Node 10 and Safari before 12.1,
  * get a registry of their own for each copy instead.
  */
-const root: any = typeof globalThis !== 'undefined' ? globalThis : {};
+// The fallback can't be tested on Node versions that support Vitest, which all have globalThis
+const root: any = typeof globalThis !== 'undefined' ? globalThis : /* v8 ignore next */ {};
 
 const registry: TagRegistry =
   (root[Symbol.for('jsx-object.tags')] ??= { tags: new Map(), fallback: undefined });
