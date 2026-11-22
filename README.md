@@ -205,7 +205,7 @@ console.log(data);
 // { type: 'paragraph', content: 'Hello', variant: undefined }
 ```
 
-Use a fragment (`<>...</>`) to return several objects as an array:
+A fragment (`<>...</>`) returns its children, following the same rules, so several children become an array:
 
 ```tsx
 const data = (
@@ -221,6 +221,8 @@ console.log(data);
 //   { type: 'paragraph', content: 'World', variant: undefined },
 // ]
 ```
+
+Like a component's children, a fragment with a single child returns that child as-is, and an empty fragment returns an empty array. The shape follows the children you write, not how many are left after empty ones are dropped: `<><A />{show && <B />}</>` is an array even when `show` is false. If you always need an array, write one directly, as in `[<A />]`.
 
 ### Lowercase Tags
 
