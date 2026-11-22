@@ -222,6 +222,25 @@ console.log(data);
 // ]
 ```
 
+### Text
+
+Text with interpolated values, such as `Hello {name}!`, reaches the component as an array of parts: `['Hello ', 'Ana', '!']`. Type the `children` prop as `TextChildren` and convert it with `toText`:
+
+```tsx
+import { toText, type TextChildren } from 'jsx-object';
+
+const Label = (props: { children: TextChildren }) => {
+  return { type: 'label', text: toText(props.children) };
+};
+
+console.log(<Label>Hello {name}, you have {count} messages</Label>);
+// { type: 'label', text: 'Hello Ana, you have 3 messages' }
+```
+
+`toText` joins the parts without a separator, converts numbers to strings, and leaves out `null`, `undefined` and booleans, so conditionals such as `{isVip && ' (VIP)'}` work too.
+
+Children are never joined automatically, because an array of strings can also be data, such as a list of tags. Only components that call `toText` get a single string.
+
 ## TypeScript
 
 jsx-object exports a few helper types:

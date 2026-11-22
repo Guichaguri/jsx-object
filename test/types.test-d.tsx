@@ -6,7 +6,9 @@ import type {
   FunctionComponent,
   ObjectElement,
   ObjectOf,
+  TextChildren,
 } from '../src/index.js';
+import { toText } from '../src/index.js';
 
 interface TextObject {
   type: 'text';
@@ -171,5 +173,28 @@ describe('Children', () => {
     expectTypeOf([show && text, null, [text]]).toExtend<Children>();
     // @ts-expect-error strings are not children unless the component declares them
     expectTypeOf('text').toExtend<Children>();
+  });
+});
+
+describe('TextChildren', () => {
+  const Label = (props: { children: TextChildren }) => ({ type: 'label', text: toText(props.children) });
+  const name = 'Ana';
+  const count = 3;
+  const vip = false as boolean;
+
+  it('accepts interpolated text, numbers, conditionals and mapped strings', () => {
+    <Label>Hello {name}, you have {count} messages</Label>;
+    <Label>Hi{vip && ' VIP'}</Label>;
+    <Label>{['a', 'b'].map((tag) => `#${tag}`)}</Label>;
+  });
+
+  it('rejects objects', () => {
+    // @ts-expect-error objects are not text
+    <Label>{{ type: 'text' }}</Label>;
+  });
+
+  it('is the parameter of toText, which returns a string', () => {
+    expectTypeOf(toText).parameter(0).toEqualTypeOf<TextChildren>();
+    expectTypeOf(toText).returns.toEqualTypeOf<string>();
   });
 });

@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import type { Children, JSX } from '../src/index.js';
+import { toText, type Children, type JSX, type TextChildren } from '../src/index.js';
 
 interface TextProps {
   variant?: 'title' | 'body';
@@ -367,5 +367,24 @@ describe('JSX syntax', () => {
         { type: 'text', variant: undefined, text: 'Three' },
       ],
     });
+  });
+
+  it('joins interpolated text with toText', () => {
+    function Label(props: { children: TextChildren }) {
+      return { type: 'label', text: toText(props.children) };
+    }
+
+    const name = 'Ana';
+    const count = 3;
+    const vip = false as boolean;
+    const tags = ['a', 'b'];
+
+    expect(<Label>Hello {name}, you have {count} messages</Label>).toEqual({
+      type: 'label',
+      text: 'Hello Ana, you have 3 messages',
+    });
+    expect(<Label>Hi{vip && ' VIP'} {name}</Label>).toEqual({ type: 'label', text: 'Hi Ana' });
+    expect(<Label>{tags.map((tag) => `#${tag} `)}</Label>).toEqual({ type: 'label', text: '#a #b ' });
+    expect(<Label>{vip && 'VIP'}</Label>).toEqual({ type: 'label', text: '' });
   });
 });
