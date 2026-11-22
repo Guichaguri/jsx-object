@@ -54,11 +54,6 @@ export interface FunctionComponent<T = {}, R extends object = object & JSX.Compo
  */
 export type FC<T = {}, R extends object = object & JSX.ComponentObject> = FunctionComponent<T, R>
 
-/**
- * Alias of {@linkcode FunctionComponent}.
- */
-export type Component<T = {}, R extends object = object & JSX.ComponentObject> = FunctionComponent<T, R>
-
 export function Fragment(
   props: PropsWithChildren
 ): JSX.Element {

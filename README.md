@@ -285,7 +285,7 @@ const Section: FC<{ title: string, children: Children }, SectionObject> = (props
 };
 ```
 
-`FC` is shorthand for `FunctionComponent`, and `Component` is another alias of the same type, so use whichever name you prefer. Like React's, `FunctionComponent` is an interface, so you can extend it with `declare module 'jsx-object'`.
+`FC` is shorthand for `FunctionComponent`, so use whichever name you prefer. Like React's, `FunctionComponent` is an interface, so you can extend it with `declare module 'jsx-object'`.
 
 ### Typing results
 
@@ -373,7 +373,7 @@ declare module 'jsx-object' {
 }
 ```
 
-`ComponentObject` is empty by default. Members added to it apply to every component, whether it's sync or async, or returns another component's JSX. They also become the default of `ObjectElement` and `Component`. Use optional members to allow a property without requiring it. If a member uses literal types, such as `type: 'text' | 'stack'`, components must return those values `as const`, since TypeScript otherwise widens them to `string`.
+`ComponentObject` is empty by default. Members added to it apply to every component, whether it's sync or async, or returns another component's JSX. They also become the default of `ObjectElement` and `FunctionComponent`. Use optional members to allow a property without requiring it. If a member uses literal types, such as `type: 'text' | 'stack'`, components must return those values `as const`, since TypeScript otherwise widens them to `string`.
 
 You can add members and new types, but you can't redefine existing ones: `JSX.Element` and `JSX.ElementType` are fixed, and existing interface members, such as `key`, keep their types.
 
@@ -412,7 +412,11 @@ In 1.x, jsx-object declared `JSX` as a global namespace. It's now exported from 
 1. **Extensions move from `declare global` to `declare module 'jsx-object'`.** The block inside stays the same. A leftover `declare global { namespace JSX { ... } }` still compiles, but no longer affects jsx-object. Custom tags become type errors, and `ComponentObject` members stop being enforced without any error, so search your project for `declare global` when upgrading.
 2. **`JSX.Element`, `JSX.ComponentObject` and other `JSX` types need an import:** `import type { JSX } from 'jsx-object'`. Without it, TypeScript reports "Cannot find namespace 'JSX'". If the project also has `@types/react` 18 installed, the bare name resolves to React's global `JSX` instead, without an error.
 
-Components, props, `ObjectElement`, `ObjectOf` and the other exported types are otherwise unchanged.
+Components, props, `ObjectElement`, `ObjectOf` and the other exported types are not affected by this change.
+
+### `Component` is removed
+
+The `Component` type was an alias of `FunctionComponent`. Replace it with `FunctionComponent` or its shorthand `FC`, which take the same type parameters.
 
 ## Compatibility
 

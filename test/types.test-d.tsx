@@ -1,7 +1,6 @@
 import { describe, expectTypeOf, it } from 'vitest';
 import type {
   Children,
-  Component,
   FC,
   FunctionComponent,
   ObjectElement,
@@ -20,7 +19,7 @@ interface CardObject {
 
 const Text = (props: { children: string }): TextObject => ({ type: 'text', text: props.children });
 
-const AsyncText: Component<{ id: number }, TextObject> = async (props) => ({
+const AsyncText: FC<{ id: number }, TextObject> = async (props) => ({
   type: 'text',
   text: `#${props.id}`,
 });
@@ -81,14 +80,14 @@ describe('ObjectOf', () => {
   });
 });
 
-describe('Component', () => {
+describe('FC', () => {
   it('declares props and result types', () => {
     expectTypeOf(AsyncText).parameter(0).toEqualTypeOf<{ id: number }>();
     expectTypeOf(AsyncText).returns.toEqualTypeOf<ObjectElement<TextObject>>();
   });
 
   it('defaults the result to any object', () => {
-    expectTypeOf<ReturnType<Component>>().toEqualTypeOf<ObjectElement>();
+    expectTypeOf<ReturnType<FC>>().toEqualTypeOf<ObjectElement>();
   });
 });
 
@@ -124,11 +123,8 @@ describe('FunctionComponent', () => {
     expectTypeOf(<Title />);
   });
 
-  it('is the same type as FC and Component', () => {
+  it('is the same type as FC', () => {
     expectTypeOf<FC<{ text: string }, TextObject>>().toEqualTypeOf<
-      FunctionComponent<{ text: string }, TextObject>
-    >();
-    expectTypeOf<Component<{ text: string }, TextObject>>().toEqualTypeOf<
       FunctionComponent<{ text: string }, TextObject>
     >();
     expectTypeOf<FC>().toEqualTypeOf<FunctionComponent>();
