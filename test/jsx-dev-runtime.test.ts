@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
+import { registerDefaultTag } from '../src/index.js';
 import * as devRuntime from '../src/jsx-dev-runtime.js';
 import * as runtime from '../src/jsx-runtime.js';
 
@@ -18,10 +19,17 @@ describe('jsx-dev-runtime', () => {
     expect(result).toEqual({ type: 'box', title: 'Hello', children: { id: 1 } });
   });
 
-  it('jsxDEV returns the children of intrinsic elements', () => {
-    const child = { id: 1 };
+  it('jsxDEV renders lowercase tags with the tag handlers', () => {
+    const restore = registerDefaultTag((name, props) => ({ type: name, ...props }));
 
-    expect(devRuntime.jsxDEV('anything', { children: child })).toBe(child);
+    try {
+      expect(devRuntime.jsxDEV('anything', { children: { id: 1 } })).toEqual({
+        type: 'anything',
+        children: { id: 1 },
+      });
+    } finally {
+      restore();
+    }
   });
 
   it('jsxDEV awaits promise children', async () => {

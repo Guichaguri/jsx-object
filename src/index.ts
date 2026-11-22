@@ -1,6 +1,8 @@
 import type { JSX } from './jsx.js';
 
 export type { JSX } from './jsx.js';
+export { registerDefaultTag, registerTag } from './tags.js';
+export type { DefaultTagHandler, TagHandler } from './tags.js';
 
 /**
  * The result of a JSX element: the object `T`, or a promise of it when the tree contains an async

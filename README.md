@@ -222,6 +222,41 @@ console.log(data);
 // ]
 ```
 
+### Lowercase Tags
+
+Lowercase tags, such as `<box>`, have no meaning of their own: jsx-object doesn't know what object you want them to become, so rendering one throws until you register a handler for it. A tag handler works like a component, receiving the props with normalized and awaited children:
+
+```tsx
+import { registerTag } from 'jsx-object';
+
+registerTag('box', (props) => ({ type: 'box', color: props.color, children: props.children }));
+
+const data = (
+  <box color="red">
+    <Paragraph>Hello</Paragraph>
+  </box>
+)
+
+console.log(data);
+// { type: 'box', color: 'red', children: { type: 'paragraph', content: 'Hello', variant: undefined } }
+```
+
+To handle every tag that has no handler of its own, register a default handler, which also receives the tag name:
+
+```tsx
+import { registerDefaultTag } from 'jsx-object';
+
+registerDefaultTag((name, props) => ({ type: name, ...props }));
+```
+
+A few rules keep the registry predictable:
+
+- Tags must be declared in `JSX.IntrinsicElements`, as shown in [Extending the JSX types](#extending-the-jsx-types), which also types the handler's props.
+- A tag can only be registered once. Registering it again throws, so two libraries can't silently replace each other's tags.
+- Setting the default handler again replaces the previous one. It's meant to be set by the app; libraries should only register their own tags.
+- Both functions return a function that undoes the registration, which is useful in tests. Undoing a default handler restores the previous one.
+- The registry is shared by every copy of jsx-object in the process, including its ESM and CommonJS builds. Register handlers before rendering, since elements are evaluated as soon as they're created.
+
 ## TypeScript
 
 jsx-object exports a few helper types:
@@ -316,13 +351,13 @@ const result: JSX.ComponentObject = <Post title="Hello World!" />;
 Extend it with a `declare module` block from any module file in your project:
 
 ```tsx
-export {};
+import type { Children } from 'jsx-object';
 
 declare module 'jsx-object' {
   namespace JSX {
     // Declare custom tags, with type-checked props
     interface IntrinsicElements {
-      box: { color?: string };
+      box: { color?: string; children?: Children };
     }
 
     // Accept an extra prop on every component
@@ -350,7 +385,7 @@ If an async component throws or rejects, the whole tree rejects with that error,
 
 ### No built-in tags
 
-There are no intrinsic elements such as `<div>`. A lowercase tag simply returns its children, and TypeScript rejects it unless you declare it yourself, as shown in [Extending the JSX types](#extending-the-jsx-types).
+There are no intrinsic elements such as `<div>`. Rendering a lowercase tag throws unless you [register a handler](#lowercase-tags) for it, and TypeScript rejects it unless you declare it yourself, as shown in [Extending the JSX types](#extending-the-jsx-types).
 
 ### `key` is reserved
 
@@ -361,6 +396,14 @@ The JSX transform strips the `key` prop before it reaches your components. If yo
 ### Children are flattened
 
 Children used to reach components exactly as written. They're now [normalized](#children): nested arrays are flattened, and `null`, `undefined` and booleans are dropped. This changes the output of any tree that mixes mapped lists with other children, uses conditionals, or contains components returning fragments or `null`. A component that relied on the nested structure, such as treating each mapped list as a group, should now take the list as a regular prop instead. The `Children` type also accepts booleans now.
+
+### Lowercase tags throw by default
+
+A lowercase tag used to return its children. It now throws unless a handler is [registered](#lowercase-tags) for it. To keep the old behavior, register a default handler that passes the children through:
+
+```tsx
+registerDefaultTag((name, props) => props.children);
+```
 
 ### `JSX` is no longer global
 

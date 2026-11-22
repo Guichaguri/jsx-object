@@ -1,5 +1,10 @@
-import { describe, expect, it, vi } from 'vitest';
+import { beforeAll, describe, expect, it, vi } from 'vitest';
+import { registerDefaultTag } from '../src/index.js';
 import { Fragment, jsx, jsxs } from '../src/jsx-runtime.js';
+
+// Lowercase tags throw by default. These tests use them to inspect the normalized children, so
+// they're rendered as their children here.
+beforeAll(() => registerDefaultTag((_name, props) => props.children));
 
 describe('jsx', () => {
   it('calls a component function with its props and children', () => {
@@ -29,13 +34,13 @@ describe('jsx', () => {
     expect(attributes).toEqual(snapshot);
   });
 
-  it('returns the children of an intrinsic (string) element', () => {
+  it('passes the children to the handler of a lowercase tag', () => {
     const child = { type: 'child' };
 
     expect(jsx('anything', { children: child })).toBe(child);
   });
 
-  it('returns undefined for an intrinsic element without children', () => {
+  it('passes no children to a lowercase tag without children', () => {
     expect(jsx('anything', {})).toBeUndefined();
   });
 
@@ -66,7 +71,7 @@ describe('jsx', () => {
     await expect(result).resolves.toEqual({ title: 'Hello', children: { type: 'child' } });
   });
 
-  it('resolves to the awaited children of an intrinsic element', async () => {
+  it('passes awaited children to the handler of a lowercase tag', async () => {
     const result = jsx('anything', { children: Promise.resolve({ type: 'child' }) });
 
     await expect(result).resolves.toEqual({ type: 'child' });
@@ -107,7 +112,7 @@ describe('jsxs', () => {
     expect(result).toEqual({ children: [] });
   });
 
-  it('returns the children array of an intrinsic element', () => {
+  it('passes the children array to the handler of a lowercase tag', () => {
     const children = [{ id: 1 }, { id: 2 }];
 
     expect(jsxs('anything', { children })).toBe(children);

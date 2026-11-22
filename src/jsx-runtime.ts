@@ -1,4 +1,5 @@
 import type { Children, JSX } from './index.js';
+import { renderTag } from './tags.js';
 
 export type { JSX } from './index.js';
 
@@ -10,7 +11,7 @@ const processResult = (
     return name(props);
   }
 
-  return props.children;
+  return renderTag(name, props);
 }
 
 const isPromise = (value: any): value is Promise<any> => {
